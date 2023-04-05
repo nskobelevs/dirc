@@ -1,13 +1,13 @@
-package ie.dirc.genesis.genesis;
+package ie.dirc.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class GenesisApplication {
+public class APIApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(GenesisApplication.class, args);
+        SpringApplication.run(APIApplication.class, args);
     }
 
 }

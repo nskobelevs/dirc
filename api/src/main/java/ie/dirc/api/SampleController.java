@@ -1,4 +1,4 @@
-package ie.dirc.genesis.genesis;
+package ie.dirc.api;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
