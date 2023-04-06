@@ -9,6 +9,7 @@ pub enum AuthError {
     JsonParsingError(String),
     UserNotFound(String),
     UsernameTaken(String),
+    DatabaseError(String),
 }
 
 impl AuthError {
@@ -18,6 +19,7 @@ impl AuthError {
             AuthError::JsonParsingError(_) => StatusCode::BAD_REQUEST,
             AuthError::NotFound => StatusCode::NOT_FOUND,
             AuthError::UsernameTaken(_) => StatusCode::CONFLICT,
+            AuthError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
@@ -27,6 +29,7 @@ impl AuthError {
             AuthError::JsonParsingError(error_str) => error_str.to_owned(),
             AuthError::NotFound => "Page not found".to_string(),
             AuthError::UsernameTaken(username) => format!("Username '{}' is taken", username),
+            AuthError::DatabaseError(error_str) => error_str.to_owned(),
         }
     }
 
@@ -36,6 +39,7 @@ impl AuthError {
             AuthError::JsonParsingError(_) => "JsonParsingError".to_string(),
             AuthError::NotFound => "PageNotFound".to_string(),
             AuthError::UsernameTaken(_) => "UsernameTaken".to_string(),
+            AuthError::DatabaseError(_) => "DatabaseError".to_string(),
         }
     }
 }
@@ -74,6 +78,21 @@ pub enum Response<E> {
 impl From<AuthError> for Response<String> {
     fn from(error: AuthError) -> Self {
         Response::Err(error)
+    }
+}
+
+impl<T> From<Result<T, AuthError>> for Response<T> {
+    fn from(res: Result<T, AuthError>) -> Self {
+        match res {
+            Ok(value) => Response::Ok(value),
+            Err(err) => Response::Err(err),
+        }
+    }
+}
+
+impl From<mongodb::error::Error> for AuthError {
+    fn from(error: mongodb::error::Error) -> Self {
+        AuthError::DatabaseError(error.to_string())
     }
 }
 

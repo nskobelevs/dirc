@@ -1,5 +1,3 @@
-use std::io::Read;
-
 use pbkdf2::pbkdf2_hmac_array;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -12,6 +10,33 @@ pub mod error;
 pub struct LoginInfo {
     pub username: String,
     pub password: String,
+}
+
+#[derive(Serialize)]
+pub struct SessionToken {
+    token: String,
+}
+
+impl SessionToken {
+    pub fn new() -> Self {
+        let token = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(32)
+            .map(char::from)
+            .collect::<String>();
+
+        SessionToken { token }
+    }
+
+    pub fn token(&self) -> &String {
+        &self.token
+    }
+}
+
+impl Default for SessionToken {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

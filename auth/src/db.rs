@@ -2,22 +2,21 @@ use std::time::Duration;
 
 use mongodb::{
     bson::doc,
+    error::Result as MongoResult,
     options::{ClientOptions, IndexOptions},
     results::InsertOneResult,
-    Client, IndexModel,
+    Client, Database, IndexModel,
 };
 
-use mongodb::error::Result as MongoResult;
-
-use crate::Credentials;
+use crate::{error::AuthError, Credentials, SessionToken};
 
 #[derive(Clone, Debug)]
-pub struct MongoDatabase {
+pub struct Authenticator {
     client: Client,
-    database: mongodb::Database,
+    database: Database,
 }
 
-impl MongoDatabase {
+impl Authenticator {
     pub async fn new(url: String, db_name: String) -> anyhow::Result<Self> {
         let mut client_options = ClientOptions::parse(url).await?;
         client_options.app_name = Some("auth".to_string());
@@ -53,28 +52,13 @@ impl MongoDatabase {
         Ok(Self { client, database })
     }
 
-    pub async fn write_credentials(
+    pub async fn attempt_register(
         &self,
-        credentials: &Credentials,
-    ) -> MongoResult<InsertOneResult> {
+        credentials: Credentials,
+    ) -> Result<SessionToken, AuthError> {
         let collection = self.database.collection::<Credentials>("credentials");
 
-        collection.insert_one(credentials, None).await
-    }
-
-    pub async fn fetch_credentials(&self, username: String) -> Option<Credentials> {
-        let collection = self.database.collection::<Credentials>("credentials");
-
-        collection
-            .find_one(doc! { "username": username }, None)
-            .await
-            .unwrap()
-    }
-
-    pub async fn attempt_register(&self, credentials: Credentials) -> Option<String> {
-        let collection = self.database.collection::<Credentials>("credentials");
-
-        let mut session = self.client.start_session(None).await.ok()?;
+        let mut session = self.client.start_session(None).await?;
 
         let existing = collection
             .find_one_with_session(
@@ -83,17 +67,17 @@ impl MongoDatabase {
                 &mut session,
             )
             .await
-            .ok()?;
+            .expect("Failed to search for user");
 
         if existing.is_some() {
-            return None;
+            return Err(AuthError::UsernameTaken(credentials.username().clone()));
         }
 
         collection
             .insert_one_with_session(credentials, None, &mut session)
             .await
-            .ok()?;
+            .expect("Failed to insert user");
 
-        Some("session token".to_string())
+        Ok(SessionToken::default())
     }
 }
