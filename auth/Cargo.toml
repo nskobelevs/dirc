@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4"
+derive_more = "0.99.17"
+mime = "0.3.17"
+serde = { version = "1.0", features = ["derive"] }
