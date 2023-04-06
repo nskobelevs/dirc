@@ -32,6 +32,14 @@ async fn authenticate(
     authenticator.authenticate(token.into_inner()).await.into()
 }
 
+#[post("/logout")]
+async fn logout(
+    authenticator: web::Data<Authenticator>,
+    token: web::Json<SessionToken>,
+) -> Response<()> {
+    authenticator.logout(token.into_inner()).await.into()
+}
+
 /// Custom 404 handler to return JSON
 async fn not_found() -> HttpResponse {
     HttpResponse::NotFound().json(AuthError::NotFound)
@@ -51,6 +59,7 @@ async fn main() -> std::io::Result<()> {
             .service(login)
             .service(register)
             .service(authenticate)
+            .service(logout)
             .default_service(web::route().to(not_found))
     })
     .bind(("0.0.0.0", 8081))?

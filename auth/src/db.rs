@@ -135,4 +135,19 @@ impl Authenticator {
             None => Err(AuthError::AuthenticationError),
         }
     }
+
+    pub async fn logout(&self, session_token: SessionToken) -> Result<(), AuthError> {
+        let mut session = self.client.start_session(None).await?;
+        let session_token_collection = self.database.collection::<SessionToken>("sessions");
+
+        session_token_collection
+            .delete_one_with_session(
+                doc! { "username": session_token.username(), "token": session_token.token() },
+                None,
+                &mut session,
+            )
+            .await?;
+
+        Ok(())
+    }
 }
