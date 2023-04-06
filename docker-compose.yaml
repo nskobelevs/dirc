@@ -1,7 +1,17 @@
 version: "3"
 services:
-  api:
-    build: api
-    container_name: api
+  # api:
+  #   build: api
+  #   container_name: api
+  #   ports:
+  #     - "8080:8080"
+  # auth:
+  #   build: auth
+  #   container_name: auth
+  #   ports:
+  #     - "8081:8081"
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
     ports:
-      - "8080:8080"
+      - "27017:27017"
