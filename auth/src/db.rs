@@ -3,7 +3,7 @@ use std::time::Duration;
 use mongodb::{
     bson::doc,
     options::{ClientOptions, IndexOptions},
-    Client, Database, IndexModel,
+    Client, ClientSession, Database, IndexModel,
 };
 
 use crate::{error::AuthError, Credentials, LoginInfo, SessionToken};
@@ -34,11 +34,10 @@ impl Authenticator {
             .await?;
 
         let session_options = IndexOptions::builder()
-            .unique(true)
             .expire_after(Duration::from_secs(2592000))
             .build();
         let session_model = IndexModel::builder()
-            .keys(doc! {"username": 1})
+            .keys(doc! {"token": 1})
             .options(session_options)
             .build();
 
@@ -51,7 +50,7 @@ impl Authenticator {
     }
 
     pub async fn attempt_register(&self, info: LoginInfo) -> Result<SessionToken, AuthError> {
-        let credentials = Credentials::new(info);
+        let credentials = Credentials::new(&info);
 
         let credentials_collection = self.database.collection::<Credentials>("credentials");
 
@@ -71,15 +70,51 @@ impl Authenticator {
 
         credentials_collection
             .insert_one_with_session(credentials, None, &mut session)
-            .await
-            .expect("Failed to insert user");
+            .await?;
 
-        let session_token = SessionToken::default();
+        self.create_and_store_session_token(info.username, &mut session)
+            .await
+    }
+
+    async fn create_and_store_session_token(
+        &self,
+        username: String,
+        session: &mut ClientSession,
+    ) -> Result<SessionToken, AuthError> {
+        let session_token = SessionToken::new(username);
         let session_token_collection = self.database.collection::<SessionToken>("sessions");
         session_token_collection
-            .insert_one_with_session(session_token.clone(), None, &mut session)
+            .insert_one_with_session(session_token.clone(), None, session)
             .await?;
 
         Ok(session_token)
+    }
+
+    pub async fn login(&self, info: LoginInfo) -> Result<SessionToken, AuthError> {
+        let mut session = self.client.start_session(None).await?;
+
+        let credentials_collection = self.database.collection::<Credentials>("credentials");
+
+        let credentials = {
+            let credentials_option = credentials_collection
+                .find_one_with_session(
+                    doc! { "username": info.username.clone() },
+                    None,
+                    &mut session,
+                )
+                .await?;
+
+            match credentials_option {
+                Some(credentials) => credentials,
+                None => return Err(AuthError::UserNotFound(info.username)),
+            }
+        };
+
+        if credentials.matches(&info) {
+            self.create_and_store_session_token(info.username, &mut session)
+                .await
+        } else {
+            Err(AuthError::InvalidPassword)
+        }
     }
 }

@@ -9,8 +9,8 @@ use auth::{
 async fn login(
     authenticator: web::Data<Authenticator>,
     info: web::Json<LoginInfo>,
-) -> Response<String> {
-    AuthError::UserNotFound(info.username.clone()).into()
+) -> Response<SessionToken> {
+    authenticator.login(info.into_inner()).await.into()
 }
 
 #[post("/register")]

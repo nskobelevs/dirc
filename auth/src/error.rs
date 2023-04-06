@@ -10,6 +10,7 @@ pub enum AuthError {
     UserNotFound(String),
     UsernameTaken(String),
     DatabaseError(String),
+    InvalidPassword,
 }
 
 impl AuthError {
@@ -20,6 +21,7 @@ impl AuthError {
             AuthError::NotFound => StatusCode::NOT_FOUND,
             AuthError::UsernameTaken(_) => StatusCode::CONFLICT,
             AuthError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            AuthError::InvalidPassword => StatusCode::UNAUTHORIZED,
         }
     }
 
@@ -30,6 +32,7 @@ impl AuthError {
             AuthError::NotFound => "Page not found".to_string(),
             AuthError::UsernameTaken(username) => format!("Username '{}' is taken", username),
             AuthError::DatabaseError(error_str) => error_str.to_owned(),
+            AuthError::InvalidPassword => "Invalid password".to_string(),
         }
     }
 
@@ -40,6 +43,7 @@ impl AuthError {
             AuthError::NotFound => "PageNotFound".to_string(),
             AuthError::UsernameTaken(_) => "UsernameTaken".to_string(),
             AuthError::DatabaseError(_) => "DatabaseError".to_string(),
+            AuthError::InvalidPassword => "InvalidPassword".to_string(),
         }
     }
 }

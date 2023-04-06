@@ -14,28 +14,23 @@ pub struct LoginInfo {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SessionToken {
+    username: String,
     token: String,
 }
 
 impl SessionToken {
-    pub fn new() -> Self {
+    pub fn new(username: String) -> Self {
         let token = rand::thread_rng()
             .sample_iter(&rand::distributions::Alphanumeric)
             .take(32)
             .map(char::from)
             .collect::<String>();
 
-        SessionToken { token }
+        SessionToken { username, token }
     }
 
     pub fn token(&self) -> &String {
         &self.token
-    }
-}
-
-impl Default for SessionToken {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -47,24 +42,36 @@ pub struct Credentials {
 }
 
 impl Credentials {
-    pub fn new(login_info: LoginInfo) -> Self {
+    pub fn new(login_info: &LoginInfo) -> Self {
         let salt = rand::thread_rng()
             .sample_iter(&rand::distributions::Alphanumeric)
             .take(32)
             .map(char::from)
             .collect::<String>();
 
-        let hashed_password =
-            pbkdf2_hmac_array::<Sha256, 32>(login_info.password.as_bytes(), salt.as_bytes(), 4096);
+        let hashed_password = Credentials::create_hash(&login_info.password, &salt);
 
         Credentials {
-            username: login_info.username,
+            username: login_info.username.clone(),
             password_hash: hex::encode(hashed_password),
             salt,
         }
     }
 
+    fn create_hash(password: &String, salt: &String) -> String {
+        let hashed_password =
+            pbkdf2_hmac_array::<Sha256, 32>(password.as_bytes(), salt.as_bytes(), 4096);
+
+        hex::encode(hashed_password)
+    }
+
     pub fn username(&self) -> &String {
         &self.username
+    }
+
+    pub fn matches(&self, login_info: &LoginInfo) -> bool {
+        let hashed_password = Credentials::create_hash(&login_info.password, &self.salt);
+
+        self.password_hash == hex::encode(hashed_password)
     }
 }
