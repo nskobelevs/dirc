@@ -18,11 +18,10 @@ async fn register(
     authenticator: web::Data<Authenticator>,
     info: web::Json<LoginInfo>,
 ) -> Response<SessionToken> {
-    let info = info.into_inner();
-
-    let credentials = Credentials::new(info.clone());
-
-    authenticator.attempt_register(credentials).await.into()
+    authenticator
+        .attempt_register(info.into_inner())
+        .await
+        .into()
 }
 
 /// Custom 404 handler to return JSON

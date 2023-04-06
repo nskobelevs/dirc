@@ -2,13 +2,11 @@ use std::time::Duration;
 
 use mongodb::{
     bson::doc,
-    error::Result as MongoResult,
     options::{ClientOptions, IndexOptions},
-    results::InsertOneResult,
     Client, Database, IndexModel,
 };
 
-use crate::{error::AuthError, Credentials, SessionToken};
+use crate::{error::AuthError, Credentials, LoginInfo, SessionToken};
 
 #[derive(Clone, Debug)]
 pub struct Authenticator {
@@ -52,32 +50,36 @@ impl Authenticator {
         Ok(Self { client, database })
     }
 
-    pub async fn attempt_register(
-        &self,
-        credentials: Credentials,
-    ) -> Result<SessionToken, AuthError> {
-        let collection = self.database.collection::<Credentials>("credentials");
+    pub async fn attempt_register(&self, info: LoginInfo) -> Result<SessionToken, AuthError> {
+        let credentials = Credentials::new(info);
+
+        let credentials_collection = self.database.collection::<Credentials>("credentials");
 
         let mut session = self.client.start_session(None).await?;
 
-        let existing = collection
+        let existing = credentials_collection
             .find_one_with_session(
                 doc! { "username": credentials.username() },
                 None,
                 &mut session,
             )
-            .await
-            .expect("Failed to search for user");
+            .await?;
 
         if existing.is_some() {
             return Err(AuthError::UsernameTaken(credentials.username().clone()));
         }
 
-        collection
+        credentials_collection
             .insert_one_with_session(credentials, None, &mut session)
             .await
             .expect("Failed to insert user");
 
-        Ok(SessionToken::default())
+        let session_token = SessionToken::default();
+        let session_token_collection = self.database.collection::<SessionToken>("sessions");
+        session_token_collection
+            .insert_one_with_session(session_token.clone(), None, &mut session)
+            .await?;
+
+        Ok(session_token)
     }
 }

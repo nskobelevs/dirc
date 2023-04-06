@@ -12,7 +12,7 @@ pub struct LoginInfo {
     pub password: String,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SessionToken {
     token: String,
 }
