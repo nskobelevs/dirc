@@ -8,6 +8,7 @@ pub enum AuthError {
     NotFound,
     JsonParsingError(String),
     UserNotFound(String),
+    UsernameTaken(String),
 }
 
 impl AuthError {
@@ -16,6 +17,7 @@ impl AuthError {
             AuthError::UserNotFound(_) => StatusCode::NOT_FOUND,
             AuthError::JsonParsingError(_) => StatusCode::BAD_REQUEST,
             AuthError::NotFound => StatusCode::NOT_FOUND,
+            AuthError::UsernameTaken(_) => StatusCode::CONFLICT,
         }
     }
 
@@ -24,6 +26,7 @@ impl AuthError {
             AuthError::UserNotFound(name) => format!("User '{}' does not exist", name),
             AuthError::JsonParsingError(error_str) => error_str.to_owned(),
             AuthError::NotFound => "Page not found".to_string(),
+            AuthError::UsernameTaken(username) => format!("Username '{}' is taken", username),
         }
     }
 
@@ -32,6 +35,7 @@ impl AuthError {
             AuthError::UserNotFound(_) => "UserNotFound".to_string(),
             AuthError::JsonParsingError(_) => "JsonParsingError".to_string(),
             AuthError::NotFound => "PageNotFound".to_string(),
+            AuthError::UsernameTaken(_) => "UsernameTaken".to_string(),
         }
     }
 }
