@@ -2,7 +2,7 @@ use actix_web::{error, post, web, App, HttpResponse, HttpServer};
 use auth::{
     db::Authenticator,
     error::{AuthError, Response},
-    Credentials, LoginInfo, SessionToken,
+    LoginInfo, SessionToken,
 };
 
 #[post("/login")]
@@ -24,6 +24,14 @@ async fn register(
         .into()
 }
 
+#[post("/authenticate")]
+async fn authenticate(
+    authenticator: web::Data<Authenticator>,
+    token: web::Json<SessionToken>,
+) -> Response<()> {
+    authenticator.authenticate(token.into_inner()).await.into()
+}
+
 /// Custom 404 handler to return JSON
 async fn not_found() -> HttpResponse {
     HttpResponse::NotFound().json(AuthError::NotFound)
@@ -42,6 +50,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(authenticator.clone()))
             .service(login)
             .service(register)
+            .service(authenticate)
             .default_service(web::route().to(not_found))
     })
     .bind(("0.0.0.0", 8081))?

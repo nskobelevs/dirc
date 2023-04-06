@@ -11,6 +11,7 @@ pub enum AuthError {
     UsernameTaken(String),
     DatabaseError(String),
     InvalidPassword,
+    AuthenticationError,
 }
 
 impl AuthError {
@@ -22,6 +23,7 @@ impl AuthError {
             AuthError::UsernameTaken(_) => StatusCode::CONFLICT,
             AuthError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AuthError::InvalidPassword => StatusCode::UNAUTHORIZED,
+            AuthError::AuthenticationError => StatusCode::UNAUTHORIZED,
         }
     }
 
@@ -33,6 +35,7 @@ impl AuthError {
             AuthError::UsernameTaken(username) => format!("Username '{}' is taken", username),
             AuthError::DatabaseError(error_str) => error_str.to_owned(),
             AuthError::InvalidPassword => "Invalid password".to_string(),
+            AuthError::AuthenticationError => "Failed to authenticate user".to_string(),
         }
     }
 
@@ -44,6 +47,7 @@ impl AuthError {
             AuthError::UsernameTaken(_) => "UsernameTaken".to_string(),
             AuthError::DatabaseError(_) => "DatabaseError".to_string(),
             AuthError::InvalidPassword => "InvalidPassword".to_string(),
+            AuthError::AuthenticationError => "AuthenticationError".to_string(),
         }
     }
 }

@@ -29,6 +29,10 @@ impl SessionToken {
         SessionToken { username, token }
     }
 
+    pub fn username(&self) -> &String {
+        &self.username
+    }
+
     pub fn token(&self) -> &String {
         &self.token
     }
