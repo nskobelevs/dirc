@@ -83,12 +83,6 @@ pub enum Response<E> {
     Err(AuthError),
 }
 
-impl From<AuthError> for Response<String> {
-    fn from(error: AuthError) -> Self {
-        Response::Err(error)
-    }
-}
-
 impl<T> From<Result<T, AuthError>> for Response<T> {
     fn from(res: Result<T, AuthError>) -> Self {
         match res {
@@ -101,21 +95,6 @@ impl<T> From<Result<T, AuthError>> for Response<T> {
 impl From<mongodb::error::Error> for AuthError {
     fn from(error: mongodb::error::Error) -> Self {
         AuthError::DatabaseError(error.to_string())
-    }
-}
-
-impl<E> From<E> for Response<E> {
-    fn from(e: E) -> Self {
-        Response::Ok(e)
-    }
-}
-
-impl<E> From<&E> for Response<E>
-where
-    E: Clone,
-{
-    fn from(e: &E) -> Self {
-        Response::Ok(e.clone())
     }
 }
 
