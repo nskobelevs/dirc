@@ -6,12 +6,14 @@ use sha2::Sha256;
 pub mod db;
 pub mod error;
 
+/// A struct that contains the username and password
 #[derive(Clone, Deserialize)]
 pub struct LoginInfo {
     pub username: String,
     pub password: String,
 }
 
+/// A struct that contains the username and a session token
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SessionToken {
     username: String,
@@ -19,6 +21,7 @@ pub struct SessionToken {
 }
 
 impl SessionToken {
+    /// Creates a new random SessionToken given a username
     pub fn new(username: String) -> Self {
         let token = rand::thread_rng()
             .sample_iter(&rand::distributions::Alphanumeric)
@@ -29,15 +32,18 @@ impl SessionToken {
         SessionToken { username, token }
     }
 
+    /// Returns the username of the SessionToken
     pub fn username(&self) -> &String {
         &self.username
     }
 
+    /// Returns the token of the SessionToken
     pub fn token(&self) -> &String {
         &self.token
     }
 }
 
+/// A struct that contains the username, password hash and salt of a user
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Credentials {
     username: String,
@@ -46,6 +52,9 @@ pub struct Credentials {
 }
 
 impl Credentials {
+    /// Creates a new Credentials struct given a LoginInfo
+    ///
+    /// Will generate a random salt and hash the password with the salt
     pub fn new(login_info: &LoginInfo) -> Self {
         let salt = rand::thread_rng()
             .sample_iter(&rand::distributions::Alphanumeric)
@@ -69,10 +78,12 @@ impl Credentials {
         hex::encode(hashed_password)
     }
 
+    /// Returns the username of the Credentials
     pub fn username(&self) -> &String {
         &self.username
     }
 
+    /// Returns true if the given password matches the password of the Credentials
     pub fn matches(&self, login_info: &LoginInfo) -> bool {
         let hashed_password = Credentials::create_hash(&login_info.password, &self.salt);
 

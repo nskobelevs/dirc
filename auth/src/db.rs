@@ -8,6 +8,7 @@ use mongodb::{
 
 use crate::{error::AuthError, Credentials, LoginInfo, SessionToken};
 
+/// Authenticator is the main struct for the authentication service handing authentication actions using a MongoDB database.
 #[derive(Clone, Debug)]
 pub struct Authenticator {
     client: Client,
@@ -15,6 +16,10 @@ pub struct Authenticator {
 }
 
 impl Authenticator {
+    /// Creates a new Authenticator instance given a mongodb url and database name
+    ///
+    /// # Errors
+    /// Construction will fail if a database error occurs
     pub async fn new(url: String, db_name: String) -> anyhow::Result<Self> {
         let mut client_options = ClientOptions::parse(url).await?;
         client_options.app_name = Some("auth".to_string());
@@ -49,7 +54,12 @@ impl Authenticator {
         Ok(Self { client, database })
     }
 
-    pub async fn attempt_register(&self, info: LoginInfo) -> Result<SessionToken, AuthError> {
+    /// Registers a new user with the given username and password
+    ///
+    /// # Errors
+    /// `AuthError::DatabaseError` if a database error occurs
+    /// `AuthError::UsernameTaken` if the username is already taken
+    pub async fn register(&self, info: LoginInfo) -> Result<SessionToken, AuthError> {
         let credentials = Credentials::new(&info);
 
         let credentials_collection = self.database.collection::<Credentials>("credentials");
@@ -76,6 +86,10 @@ impl Authenticator {
             .await
     }
 
+    /// Creates a new session token, stores it in the database and returns it
+    ///
+    /// # Errors
+    /// `AuthError::DatabaseError` if a database error occurs
     async fn create_and_store_session_token(
         &self,
         username: String,
@@ -90,6 +104,12 @@ impl Authenticator {
         Ok(session_token)
     }
 
+    /// Logs in a user with the given username and password
+    ///
+    /// # Errors
+    /// `AuthError::DatabaseError` if a database error occurs
+    /// `AuthError::UserNotFound` if the user does not exist
+    /// `AuthError::InvalidPassword` if the password is incorrect
     pub async fn login(&self, info: LoginInfo) -> Result<SessionToken, AuthError> {
         let mut session = self.client.start_session(None).await?;
 
@@ -118,6 +138,11 @@ impl Authenticator {
         }
     }
 
+    /// Authenticates a session token
+    ///
+    /// # Errors
+    /// `AuthError::DatabaseError` if a database error occurs
+    /// `AuthError::AuthenticationError` if the session token is invalid
     pub async fn authenticate(&self, session_token: SessionToken) -> Result<(), AuthError> {
         let mut session = self.client.start_session(None).await?;
         let session_token_collection = self.database.collection::<SessionToken>("sessions");
@@ -136,6 +161,10 @@ impl Authenticator {
         }
     }
 
+    /// Logs out a user with the given session token
+    ///
+    /// # Errors
+    /// `AuthError::DatabaseError` if a database error occurs
     pub async fn logout(&self, session_token: SessionToken) -> Result<(), AuthError> {
         let mut session = self.client.start_session(None).await?;
         let session_token_collection = self.database.collection::<SessionToken>("sessions");

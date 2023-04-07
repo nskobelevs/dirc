@@ -5,16 +5,24 @@ use serde::{ser::SerializeMap, Serialize};
 
 /// A custom error type for this service.
 pub enum AuthError {
+    /// The requested resource was not found. Custom 404 response to return a JSON error body
     NotFound,
+    /// An error occurred while parsing the JSON body,
     JsonParsingError(String),
+    /// The user was not found in the database.
     UserNotFound(String),
+    /// Attempted to register a user with a username that is already taken.
     UsernameTaken(String),
+    /// An error occurred while interacting with the database.
     DatabaseError(String),
+    /// Attempted to login with an invalid password.
     InvalidPassword,
+    /// Failed to verify the user's session token.
     AuthenticationError,
 }
 
 impl AuthError {
+    /// Get the status code for this error.
     pub fn status_code(&self) -> StatusCode {
         match self {
             AuthError::UserNotFound(_) => StatusCode::NOT_FOUND,
@@ -27,6 +35,7 @@ impl AuthError {
         }
     }
 
+    /// Get the error message for this error.
     pub fn error_message(&self) -> String {
         match self {
             AuthError::UserNotFound(name) => format!("User '{}' does not exist", name),
@@ -39,6 +48,7 @@ impl AuthError {
         }
     }
 
+    /// Get the error type as a string for this message
     pub fn error_type(&self) -> String {
         match self {
             AuthError::UserNotFound(_) => "UserNotFound".to_string(),
@@ -52,6 +62,18 @@ impl AuthError {
     }
 }
 
+/// Custom Serde implementation to serialize the error type and message as an object.
+/// For JSON returns the following structure:
+///
+/// ```json
+/// {
+///     "error": {
+///         "type": <TYPE>,
+///         "message": <MESSAGE>
+///     }
+/// }
+///
+/// ```
 impl Serialize for AuthError {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
@@ -60,7 +82,7 @@ impl Serialize for AuthError {
         #[derive(Serialize)]
         struct ErrorInner {
             #[serde(rename = "type")]
-            type_: String,
+            kind: String,
             message: String,
         }
 
@@ -69,7 +91,7 @@ impl Serialize for AuthError {
         map.serialize_entry(
             "error",
             &ErrorInner {
-                type_: self.error_type(),
+                kind: self.error_type(),
                 message: self.error_message(),
             },
         )?;
@@ -78,6 +100,8 @@ impl Serialize for AuthError {
     }
 }
 
+/// A Result type that's limited to AuthError only
+/// Implements REsponder so that it can be returned from a handler
 pub enum Response<E> {
     Ok(E),
     Err(AuthError),
