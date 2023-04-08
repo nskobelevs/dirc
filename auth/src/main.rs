@@ -44,8 +44,9 @@ async fn not_found() -> HttpResponse {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("Starting auth server...");
     let authenticator =
-        Authenticator::new("mongodb://localhost:27017".to_string(), "auth".to_string())
+        Authenticator::new("mongodb://mongodb:27017".to_string(), "auth".to_string())
             .await
             .expect("Failed to connect to MongoDB");
 
@@ -59,7 +60,7 @@ async fn main() -> std::io::Result<()> {
             .service(logout)
             .default_service(web::route().to(not_found))
     })
-    .bind(("0.0.0.0", 8081))?
+    .bind(("0.0.0.0", 8080))?
     .run()
     .await
 }
