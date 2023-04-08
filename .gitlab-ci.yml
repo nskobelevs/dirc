@@ -42,6 +42,7 @@ api-unit-test-job: # This job runs in the test stage.
 auth-build-job:
   stage: build
   image: rust:1.67
+  script:
     - echo "Compiling the code..."
     - cd auth
     - cargo build -r
@@ -50,6 +51,7 @@ auth-build-job:
 auth-integration-test-job:
   stage: test
   image: rust:1.67
+  script:
     - echo "Running integration tests..."
     - cd auth
     - cargo test -- --test-threads=1
