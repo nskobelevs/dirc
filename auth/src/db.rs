@@ -27,6 +27,8 @@ impl Authenticator {
     pub async fn new(url: String, db_name: String) -> anyhow::Result<Self> {
         let mut client_options = ClientOptions::parse(url).await?;
         client_options.app_name = Some("auth".to_string());
+        client_options.connect_timeout = Some(Duration::from_secs(3));
+        client_options.server_selection_timeout = Some(Duration::from_secs(10));
 
         let client = Client::with_options(client_options)?;
         let database = client.database(db_name.as_str());

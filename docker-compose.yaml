@@ -11,6 +11,8 @@ services:
     depends_on:
       - mongodb
       - api
+    environment:
+    - MONGODB_HOSTNAME=mongodb
   mongodb:
     image: mongo:latest
     container_name: mongodb

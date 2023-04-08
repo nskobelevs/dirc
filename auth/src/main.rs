@@ -1,3 +1,5 @@
+use std::env;
+
 use actix_web::{error, post, web, App, HttpResponse, HttpServer};
 use auth::{
     db::Authenticator,
@@ -45,6 +47,13 @@ async fn not_found() -> HttpResponse {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Starting auth server...");
+
+    let mongodb_hostname = env::var("MONGODB_HOSTNAME").unwrap_or("localhost".to_string());
+
+    let mongodb_url = format!("mongodb://{}:27017", mongodb_hostname);
+
+    println!("MongoDB url: {}", mongodb_url);
+
     let authenticator =
         Authenticator::new("mongodb://mongodb:27017".to_string(), "auth".to_string())
             .await
