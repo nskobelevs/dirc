@@ -4,6 +4,7 @@ use actix_web::{body::BoxBody, http::StatusCode, HttpResponse, Responder};
 use serde::{ser::SerializeMap, Serialize};
 
 /// A custom error type for this service.
+#[derive(Debug, PartialEq, Eq)]
 pub enum AuthError {
     /// The requested resource was not found. Custom 404 response to return a JSON error body
     NotFound,

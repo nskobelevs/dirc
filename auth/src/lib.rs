@@ -13,6 +13,16 @@ pub struct LoginInfo {
     pub password: String,
 }
 
+impl LoginInfo {
+    /// Creates a new LoginInfo struct
+    pub fn new(username: &str, password: &str) -> Self {
+        LoginInfo {
+            username: username.to_string(),
+            password: password.to_string(),
+        }
+    }
+}
+
 /// A struct that contains the username and a session token
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SessionToken {
@@ -40,6 +50,14 @@ impl SessionToken {
     /// Returns the token of the SessionToken
     pub fn token(&self) -> &String {
         &self.token
+    }
+
+    /// Creates a new SessionToken from a username and a token
+    pub fn from_parts(username: &str, token: &str) -> Self {
+        SessionToken {
+            username: username.to_string(),
+            token: token.to_string(),
+        }
     }
 }
 

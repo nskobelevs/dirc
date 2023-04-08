@@ -16,6 +16,10 @@ pub struct Authenticator {
 }
 
 impl Authenticator {
+    pub async fn get_client(&self) -> Client {
+        self.client.clone()
+    }
+
     /// Creates a new Authenticator instance given a mongodb url and database name
     ///
     /// # Errors
