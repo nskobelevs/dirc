@@ -38,16 +38,19 @@ api-unit-test-job: # This job runs in the test stage.
     - cd api
     - mvn test
     - echo "All tests pass"
-# lint-test-job:   # This job also runs in the test stage.
-#   stage: test    # It can run at the same time as unit-test-job (in parallel).
-#   script:
-#     - echo "Linting code... This will take about 10 seconds."
-#     - sleep 10
-#     - echo "No lint issues found."
 
-# deploy-job:      # This job runs in the deploy stage.
-#   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-#   environment: production
-#   script:
-#     - echo "Deploying application..."
-#     - echo "Application successfully deployed."
+auth-build-job:
+  stage: build
+  image: rust:1.67
+    - echo "Compiling the code..."
+    - cd auth
+    - cargo build -r
+    - echo "Compile complete."
+
+auth-integration-test-job:
+  stage: test
+  image: rust:1.67
+    - echo "Running integration tests..."
+    - cd auth
+    - cargo test -- --test-threads=1
+    - echo "All tests pass"
