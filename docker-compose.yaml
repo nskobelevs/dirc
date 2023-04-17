@@ -12,7 +12,7 @@ services:
       - mongodb
       - api
     environment:
-    - MONGODB_HOSTNAME=mongodb
+      - MONGODB_HOSTNAME=mongodb
   client:
     build: client
     container_name: client

@@ -6,7 +6,7 @@ use mongodb::{
     Client, ClientSession, Database, IndexModel,
 };
 
-use crate::{error::AuthError, Credentials, LoginInfo, SessionToken};
+use crate::{error::AuthError, AuthenticateResult, Credentials, LoginInfo, SessionToken};
 
 /// Authenticator is the main struct for the authentication service handing authentication actions using a MongoDB database.
 #[derive(Clone, Debug)]
@@ -149,20 +149,16 @@ impl Authenticator {
     /// # Errors
     /// `AuthError::DatabaseError` if a database error occurs
     /// `AuthError::AuthenticationError` if the session token is invalid
-    pub async fn authenticate(&self, session_token: SessionToken) -> Result<(), AuthError> {
+    pub async fn authenticate(&self, session_token: &str) -> Result<AuthenticateResult, AuthError> {
         let mut session = self.client.start_session(None).await?;
         let session_token_collection = self.database.collection::<SessionToken>("sessions");
 
         let session_token_option = session_token_collection
-            .find_one_with_session(
-                doc! { "username": session_token.username(), "token": session_token.token() },
-                None,
-                &mut session,
-            )
+            .find_one_with_session(doc! { "token": session_token }, None, &mut session)
             .await?;
 
         match session_token_option {
-            Some(_) => Ok(()),
+            Some(session_token_object) => Ok(session_token_object.username().clone().into()),
             None => Err(AuthError::AuthenticationError),
         }
     }

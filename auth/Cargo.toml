@@ -18,3 +18,4 @@ rand = "0.8.5"
 sha2 = "0.10.6"
 hex = "0.4"
 tokio = { version = "1.13.0", features = ["rt", "macros"] }
+actix-web-httpauth = "0.8.0"

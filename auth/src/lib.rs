@@ -11,6 +11,17 @@ pub struct UserExistsParams {
     pub username: String,
 }
 
+#[derive(Debug, Serialize)]
+pub struct AuthenticateResult {
+    pub username: String,
+}
+
+impl From<String> for AuthenticateResult {
+    fn from(username: String) -> Self {
+        AuthenticateResult { username }
+    }
+}
+
 /// A struct that contains the username and password
 #[derive(Clone, Deserialize)]
 pub struct LoginInfo {
