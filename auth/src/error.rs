@@ -20,6 +20,8 @@ pub enum AuthError {
     InvalidPassword,
     /// Failed to verify the user's session token.
     AuthenticationError,
+    /// Authorization header is missing
+    AuthorizationHeaderError,
 }
 
 impl AuthError {
@@ -33,6 +35,7 @@ impl AuthError {
             AuthError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AuthError::InvalidPassword => StatusCode::UNAUTHORIZED,
             AuthError::AuthenticationError => StatusCode::UNAUTHORIZED,
+            AuthError::AuthorizationHeaderError => StatusCode::BAD_REQUEST,
         }
     }
 
@@ -46,6 +49,9 @@ impl AuthError {
             AuthError::DatabaseError(error_str) => error_str.to_owned(),
             AuthError::InvalidPassword => "Invalid password".to_string(),
             AuthError::AuthenticationError => "Failed to authenticate user".to_string(),
+            AuthError::AuthorizationHeaderError => {
+                "Authorization `Breaker` header is missing".to_string()
+            }
         }
     }
 
@@ -59,6 +65,7 @@ impl AuthError {
             AuthError::DatabaseError(_) => "DatabaseError".to_string(),
             AuthError::InvalidPassword => "InvalidPassword".to_string(),
             AuthError::AuthenticationError => "AuthenticationError".to_string(),
+            AuthError::AuthorizationHeaderError => "AuthorizationHeaderError".to_string(),
         }
     }
 }

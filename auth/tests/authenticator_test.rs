@@ -1,4 +1,4 @@
-use auth::{error::AuthError, LoginInfo, SessionToken};
+use auth::{error::AuthError, AuthenticateResult, LoginInfo, SessionToken};
 
 #[derive(Clone)]
 struct Authenticator {
@@ -32,7 +32,7 @@ impl Authenticator {
         self.inner.logout(token).await
     }
 
-    async fn authenticate(&self, token: SessionToken) -> Result<(), AuthError> {
+    async fn authenticate(&self, token: &str) -> Result<AuthenticateResult, AuthError> {
         self.inner.authenticate(token).await
     }
 }
@@ -115,7 +115,7 @@ async fn test_register_session_token_can_auth() {
 
     let token = result.unwrap();
 
-    let result = auth.authenticate(token).await;
+    let result = auth.authenticate(token.token()).await;
     assert_not_error!(result);
 }
 
@@ -128,7 +128,7 @@ async fn test_invalid_session_token_fails_auth() {
     let token = result.unwrap();
     let wrong_token = SessionToken::from_parts(token.username(), "token");
 
-    let result = auth.authenticate(wrong_token).await;
+    let result = auth.authenticate(wrong_token.token()).await;
 
     if result.is_ok() {
         panic!("Expected to fail authenticating with an invalid token");
@@ -194,7 +194,7 @@ async fn test_login_session_token_can_auth() {
 
     let token = result.unwrap();
 
-    let result = auth.authenticate(token).await;
+    let result = auth.authenticate(token.token()).await;
     assert_not_error!(result);
 }
 
@@ -211,6 +211,6 @@ async fn test_logout() {
     let token = result.unwrap();
     assert_not_error!(auth.logout(token.clone()).await);
 
-    let result = auth.authenticate(token).await;
+    let result = auth.authenticate(token.token()).await;
     assert!(result.is_err(), "Login should fail after logout");
 }

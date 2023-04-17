@@ -1,10 +1,16 @@
 use std::env;
 
-use actix_web::{error, get, post, web, App, HttpResponse, HttpServer};
+use actix_web::{
+    error::{self, ParseError},
+    get,
+    http::header::Header,
+    post, put, web, App, HttpRequest, HttpResponse, HttpServer,
+};
+use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use auth::{
     db::Authenticator,
     error::{AuthError, Response},
-    LoginInfo, SessionToken, UserExistsParams,
+    AuthenticateResult, LoginInfo, SessionToken, UserExistsParams,
 };
 
 #[post("/login")]
@@ -15,7 +21,7 @@ async fn login(
     authenticator.login(info.into_inner()).await.into()
 }
 
-#[post("/register")]
+#[put("/register")]
 async fn register(
     authenticator: web::Data<Authenticator>,
     info: web::Json<LoginInfo>,
@@ -23,12 +29,29 @@ async fn register(
     authenticator.register(info.into_inner()).await.into()
 }
 
-#[post("/authenticate")]
+#[get("/authenticate")]
 async fn authenticate(
     authenticator: web::Data<Authenticator>,
-    token: web::Json<SessionToken>,
-) -> Response<()> {
-    authenticator.authenticate(token.into_inner()).await.into()
+    req: HttpRequest,
+) -> Response<AuthenticateResult> {
+    let brearer_auth = {
+        let parsed_auth = Authorization::<Bearer>::parse(&req);
+
+        match parsed_auth {
+            Ok(auth) => auth.into_scheme(),
+            Err(ParseError::Header) => {
+                return Response::Err(AuthError::AuthorizationHeaderError);
+            }
+            Err(_) => {
+                return Response::Err(AuthError::AuthenticationError);
+            }
+        }
+    };
+
+    authenticator
+        .authenticate(brearer_auth.token())
+        .await
+        .into()
 }
 
 #[post("/logout")]
