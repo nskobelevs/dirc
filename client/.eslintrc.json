@@ -1,0 +1,12 @@
+{
+  "extends": ["next/core-web-vitals", "airbnb-base"],
+  "rules": {
+    "react/function-component-definition": [
+      "error",
+      {
+        "namedComponents": "arrow-function"
+      }
+    ],
+    "function-paren-newline": ["error", "multiline"]
+  }
+}

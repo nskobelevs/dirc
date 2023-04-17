@@ -13,6 +13,14 @@ services:
       - api
     environment:
     - MONGODB_HOSTNAME=mongodb
+  client:
+    build: client
+    container_name: client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+      - auth
   mongodb:
     image: mongo:latest
     container_name: mongodb
