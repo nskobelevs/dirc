@@ -1,10 +1,10 @@
 use std::env;
 
-use actix_web::{error, post, web, App, HttpResponse, HttpServer};
+use actix_web::{error, get, post, web, App, HttpResponse, HttpServer};
 use auth::{
     db::Authenticator,
     error::{AuthError, Response},
-    LoginInfo, SessionToken,
+    LoginInfo, SessionToken, UserExistsParams,
 };
 
 #[post("/login")]
@@ -39,6 +39,17 @@ async fn logout(
     authenticator.logout(token.into_inner()).await.into()
 }
 
+#[get("/user_exists")]
+async fn user_exists(
+    authenticator: web::Data<Authenticator>,
+    params: web::Query<UserExistsParams>,
+) -> Response<bool> {
+    authenticator
+        .user_exists(params.username.clone())
+        .await
+        .into()
+}
+
 /// Custom 404 handler to return JSON
 async fn not_found() -> HttpResponse {
     HttpResponse::NotFound().json(AuthError::NotFound)
@@ -54,10 +65,9 @@ async fn main() -> std::io::Result<()> {
 
     println!("MongoDB url: {}", mongodb_url);
 
-    let authenticator =
-        Authenticator::new("mongodb://mongodb:27017".to_string(), "auth".to_string())
-            .await
-            .expect("Failed to connect to MongoDB");
+    let authenticator = Authenticator::new(mongodb_url, "auth".to_string())
+        .await
+        .expect("Failed to connect to MongoDB");
 
     HttpServer::new(move || {
         App::new()
@@ -67,6 +77,7 @@ async fn main() -> std::io::Result<()> {
             .service(register)
             .service(authenticate)
             .service(logout)
+            .service(user_exists)
             .default_service(web::route().to(not_found))
     })
     .bind(("0.0.0.0", 8080))?

@@ -185,4 +185,19 @@ impl Authenticator {
 
         Ok(())
     }
+
+    /// Checks whether a user with a given username exists
+    ///
+    /// # Errors
+    /// `AuthError::DatabaseError` if a database error occurs
+    pub async fn user_exists(&self, username: String) -> Result<bool, AuthError> {
+        let mut session = self.client.start_session(None).await?;
+        let credentials_collection = self.database.collection::<Credentials>("credentials");
+
+        let credentials_option = credentials_collection
+            .find_one_with_session(doc! { "username": username.clone() }, None, &mut session)
+            .await?;
+
+        Ok(credentials_option.is_some())
+    }
 }

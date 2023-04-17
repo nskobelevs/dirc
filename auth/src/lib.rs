@@ -6,6 +6,11 @@ use sha2::Sha256;
 pub mod db;
 pub mod error;
 
+#[derive(Deserialize)]
+pub struct UserExistsParams {
+    pub username: String,
+}
+
 /// A struct that contains the username and password
 #[derive(Clone, Deserialize)]
 pub struct LoginInfo {
