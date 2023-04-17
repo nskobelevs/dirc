@@ -1,9 +1,10 @@
 use std::env;
 
+use actix_cors::Cors;
 use actix_web::{
     error::{self, ParseError},
     get,
-    http::header::Header,
+    http::{self, header::Header},
     post, put, web, App, HttpRequest, HttpResponse, HttpServer,
 };
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
@@ -93,7 +94,15 @@ async fn main() -> std::io::Result<()> {
         .expect("Failed to connect to MongoDB");
 
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000")
+            .allowed_methods(vec!["GET", "POST", "PUT"])
+            .allowed_headers(vec![http::header::AUTHORIZATION])
+            .allowed_header(http::header::CONTENT_TYPE)
+            .max_age(3600);
+
         App::new()
+            .wrap(cors)
             .app_data(create_json_cfg())
             .app_data(web::Data::new(authenticator.clone()))
             .service(login)
