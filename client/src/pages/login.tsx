@@ -30,12 +30,14 @@ const Home = () => {
       <main className={styles.main}>
         <form>
           <input
+            name="username"
             type="text"
             placeholder="username"
             value={username}
             onChange={handleChanges}
           />
           <input
+            name="password"
             type="password"
             placeholder="password"
             value={password}

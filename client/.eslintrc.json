@@ -1,12 +1,28 @@
 {
   "extends": ["next/core-web-vitals", "airbnb-base"],
+  "globals": {
+    "React":"readonly",
+    "RequestInit": "readonly"
+  },
   "rules": {
+    "no-redeclare": "off",
     "react/function-component-definition": [
       "error",
       {
         "namedComponents": "arrow-function"
       }
     ],
-    "function-paren-newline": ["error", "multiline"]
+    "function-paren-newline": ["error", "multiline"],
+    "import/prefer-default-export": "off",
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ]
   }
 }
