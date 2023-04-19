@@ -47,3 +47,13 @@ auth-build-job:
     - cd auth
     - cargo build -r
     - echo "Compile complete."
+
+client-build-job:
+  stage: build
+  image: node:18-alpine
+  script:
+    - echo "Compiling the code..."
+    - cd client
+    - yarn run build
+    - echo "Compile complete."
+
