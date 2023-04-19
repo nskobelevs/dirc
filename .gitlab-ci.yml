@@ -45,7 +45,7 @@ auth-build-job:
   script:
     - echo "Compiling the code..."
     - cd auth
-    - cargo build -r
+    - cargo build
     - echo "Compile complete."
 
 client-build-job:
