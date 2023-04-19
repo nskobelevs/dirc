@@ -12,6 +12,11 @@ import type {
 } from '@/api/types/auth';
 import { useAuthContext } from '@/context/AuthContext';
 
+type AuthForm = {
+    username: string;
+    password: string;
+}
+
 export const useAuth = () => {
   const [user, setUser] = useAuthContext();
 
@@ -50,7 +55,7 @@ export const useAuth = () => {
     if (router.pathname !== '/login') router.push('/login');
   }, [cookies, router, setUser]);
 
-  const register = async (username: string, password: string) => {
+  const register = async ({ username, password }: AuthForm) => {
     const { token } = await put<RegisterResponse, RegisterBody>(
       'register',
       {
@@ -62,7 +67,7 @@ export const useAuth = () => {
     setCookie('token', token);
   };
 
-  const login = async (username: string, password: string) => {
+  const login = async ({ username, password }: AuthForm) => {
     const { token } = await post<LoginResponse, LoginBody>('login', {
       username,
       password,
