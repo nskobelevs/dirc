@@ -54,6 +54,7 @@ client-build-job:
   script:
     - echo "Compiling the code..."
     - cd client
+    - yarn install
     - yarn run build
     - echo "Compile complete."
 
