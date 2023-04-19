@@ -30,7 +30,7 @@ api-build-job: # This job runs in the build stage, which runs first.
     - mvn compile
     - echo "Compile complete."
   rules:
-    changes: api/**/*
+    - changes: api/**/*
 
 api-unit-test-job: # This job runs in the test stage.
   stage: test # It only starts when the job in the build stage completes successfully.
@@ -41,7 +41,7 @@ api-unit-test-job: # This job runs in the test stage.
     - mvn test
     - echo "All tests pass"
   rules:
-    changes:
+    - changes:
       - api/**/*
 
 auth-build-job:
@@ -53,7 +53,7 @@ auth-build-job:
     - cargo build
     - echo "Compile complete."
   rules:
-    changes:
+    - changes:
       - auth/**/*
 
 client-build-job:
@@ -66,5 +66,5 @@ client-build-job:
     - yarn run build
     - echo "Compile complete."
   rules:
-    changes:
+    - changes:
       - client/**/*
