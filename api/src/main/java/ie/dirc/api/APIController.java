@@ -24,15 +24,19 @@ public class APIController {
 
     private final int port = 8080;
 
-    @RequestMapping(value = "{service}/{path}", produces = "application/json")
-    public ResponseEntity<String> mirrorRest(@RequestBody(required = false) String body, @PathVariable String service,
-            @PathVariable String path, HttpMethod method, HttpServletRequest request, HttpServletResponse response)
+    @RequestMapping(value = "{service}/**", produces = "application/json")
+    public ResponseEntity<String> mirrorRest(@RequestBody(required = false) String body, @PathVariable String service, HttpMethod method, HttpServletRequest request, HttpServletResponse response)
             throws URISyntaxException {
 
-        URI uri = new URI("http", null, service, port, "/" + path, null, null);
+        String requestURL = request.getRequestURL().toString();
+        String servicePath = requestURL.split("/" + service)[1];
+
+        URI uri = new URI("http", null, service, port, null, null, null);
         uri = UriComponentsBuilder.fromUri(uri)
+                .path(servicePath)
                 .query(request.getQueryString())
                 .build(true).toUri();
+
         HttpHeaders headers = new HttpHeaders();
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
