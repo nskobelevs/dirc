@@ -172,16 +172,12 @@ impl Authenticator {
     ///
     /// # Errors
     /// `ServiceError::DatabaseError` if a database error occurs
-    pub async fn logout(&self, session_token: SessionToken) -> Result<(), ServiceError> {
+    pub async fn logout(&self, session_token: &String) -> Result<(), ServiceError> {
         let mut session = self.client.start_session(None).await?;
         let session_token_collection = self.database.collection::<SessionToken>("sessions");
 
         session_token_collection
-            .delete_one_with_session(
-                doc! { "username": session_token.username(), "token": session_token.token() },
-                None,
-                &mut session,
-            )
+            .delete_one_with_session(doc! { "token": session_token }, None, &mut session)
             .await?;
 
         Ok(())
