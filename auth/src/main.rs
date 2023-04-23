@@ -2,16 +2,18 @@ use std::env;
 
 use actix_cors::Cors;
 use actix_web::{
-    error::{self, ParseError},
+    error::ParseError,
     get,
     http::{self, header::Header},
     post, put, web, App, HttpRequest, HttpResponse, HttpServer,
 };
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use auth::{
-    db::Authenticator,
-    error::{AuthError, Response},
-    AuthenticateResult, LoginInfo, SessionToken, UserExistsParams,
+use auth::{db::Authenticator, LoginInfo, SessionToken, UserExistsParams};
+
+use core_rs::{
+    create_json_cfg,
+    error::{Response, ServiceError},
+    AuthenticateResult,
 };
 
 #[post("/login")]
@@ -41,10 +43,10 @@ async fn authenticate(
         match parsed_auth {
             Ok(auth) => auth.into_scheme(),
             Err(ParseError::Header) => {
-                return Response::Err(AuthError::AuthorizationHeaderError);
+                return Response::Err(ServiceError::AuthorizationHeaderError);
             }
             Err(_) => {
-                return Response::Err(AuthError::AuthenticationError);
+                return Response::Err(ServiceError::AuthenticationError);
             }
         }
     };
@@ -76,14 +78,14 @@ async fn user_exists(
 
 /// Custom 404 handler to return JSON
 async fn not_found() -> HttpResponse {
-    HttpResponse::NotFound().json(AuthError::NotFound)
+    HttpResponse::NotFound().json(ServiceError::NotFound)
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Starting auth server...");
 
-    let mongodb_hostname = env::var("MONGODB_HOSTNAME").unwrap_or("localhost".to_string());
+    let mongodb_hostname = env::var("MONGODB_HOSTNAME").unwrap_or_else(|_| "localhost".to_string());
 
     let mongodb_url = format!("mongodb://{}:27017", mongodb_hostname);
 
@@ -115,19 +117,4 @@ async fn main() -> std::io::Result<()> {
     .bind(("0.0.0.0", 8080))?
     .run()
     .await
-}
-
-fn create_json_cfg() -> web::JsonConfig {
-    web::JsonConfig::default()
-        .limit(4096)
-        .content_type(|mime| mime == mime::TEXT_PLAIN || mime == mime::APPLICATION_JSON)
-        .error_handler(|err, _req| {
-            let error_str = err.to_string();
-
-            error::InternalError::from_response(
-                err,
-                HttpResponse::BadRequest().json(AuthError::JsonParsingError(error_str)),
-            )
-            .into()
-        })
 }

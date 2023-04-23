@@ -20,3 +20,4 @@ hex = "0.4"
 tokio = { version = "1.13.0", features = ["rt", "macros"] }
 actix-web-httpauth = "0.8.0"
 actix-cors = "0.6.4"
+core-rs = {path = "../core-rs"}
