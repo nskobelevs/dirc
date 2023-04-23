@@ -8,7 +8,7 @@ use actix_web::{
     post, put, web, App, HttpRequest, HttpResponse, HttpServer,
 };
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use auth::{db::Authenticator, LoginInfo, SessionToken, UserExistsParams};
+use auth::{db::Authenticator, extract_bearer_token, LoginInfo, SessionToken, UserExistsParams};
 
 use core_rs::{
     create_json_cfg,
@@ -37,32 +37,22 @@ async fn authenticate(
     authenticator: web::Data<Authenticator>,
     req: HttpRequest,
 ) -> Response<AuthenticateResult> {
-    let brearer_auth = {
-        let parsed_auth = Authorization::<Bearer>::parse(&req);
-
-        match parsed_auth {
-            Ok(auth) => auth.into_scheme(),
-            Err(ParseError::Header) => {
-                return Response::Err(ServiceError::AuthorizationHeaderError);
-            }
-            Err(_) => {
-                return Response::Err(ServiceError::AuthenticationError);
-            }
-        }
+    let bearer_auth = match extract_bearer_token(&req) {
+        Ok(bearer_auth) => bearer_auth,
+        Err(err) => return Response::Err(err),
     };
 
-    authenticator
-        .authenticate(brearer_auth.token())
-        .await
-        .into()
+    authenticator.authenticate(&bearer_auth).await.into()
 }
 
-#[post("/logout")]
-async fn logout(
-    authenticator: web::Data<Authenticator>,
-    token: web::Json<SessionToken>,
-) -> Response<()> {
-    authenticator.logout(token.into_inner()).await.into()
+#[get("/logout")]
+async fn logout(authenticator: web::Data<Authenticator>, req: HttpRequest) -> Response<()> {
+    let bearer_auth = match extract_bearer_token(&req) {
+        Ok(bearer_auth) => bearer_auth,
+        Err(err) => return Response::Err(err),
+    };
+
+    authenticator.logout(&bearer_auth).await.into()
 }
 
 #[get("/user_exists")]

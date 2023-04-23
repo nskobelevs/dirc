@@ -1,4 +1,9 @@
-use core_rs::AuthenticateResult;
+use actix_web::{error::ParseError, http::header::Header, HttpRequest};
+use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
+use core_rs::{
+    error::{Response, ServiceError},
+    AuthenticateResult,
+};
 use pbkdf2::pbkdf2_hmac_array;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -111,5 +116,15 @@ impl Credentials {
         let hashed_password = Credentials::create_hash(&login_info.password, &self.salt);
 
         self.password_hash == hex::encode(hashed_password)
+    }
+}
+
+pub fn extract_bearer_token(req: &HttpRequest) -> Result<String, ServiceError> {
+    let parsed_auth = Authorization::<Bearer>::parse(req);
+
+    match parsed_auth {
+        Ok(auth) => Ok(auth.into_scheme().token().to_string()),
+        Err(ParseError::Header) => Err(ServiceError::AuthorizationHeaderError),
+        Err(_) => Err(ServiceError::AuthenticationError),
     }
 }

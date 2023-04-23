@@ -30,7 +30,7 @@ impl Authenticator {
         self.inner.login(info).await
     }
 
-    async fn logout(&self, token: SessionToken) -> Result<(), ServiceError> {
+    async fn logout(&self, token: &String) -> Result<(), ServiceError> {
         self.inner.logout(token).await
     }
 
@@ -210,7 +210,7 @@ async fn test_logout() {
     assert_not_error!(result);
 
     let token = result.unwrap();
-    assert_not_error!(auth.logout(token.clone()).await);
+    assert_not_error!(auth.logout(token.token()).await);
 
     let result = auth.authenticate(token.token()).await;
     assert!(result.is_err(), "Login should fail after logout");
