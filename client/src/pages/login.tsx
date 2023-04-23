@@ -1,5 +1,5 @@
-import { useForm } from 'react-hook-form';
 import { useAuth } from '@/hooks/useAuth';
+import { useForm } from 'react-hook-form';
 
 type FormData = {
   username: string;
