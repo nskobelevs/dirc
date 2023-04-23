@@ -1,3 +1,4 @@
-FROM openjdk:21-jdk
-COPY target/api*.jar /api.jar
-CMD /usr/bin/java -jar /api.jar
+FROM openjdk:17-jdk
+COPY . .
+RUN ./mvnw package
+CMD /usr/bin/java -jar target/api-0.0.1.jar
