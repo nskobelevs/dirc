@@ -1,25 +1,14 @@
+use core_rs::AuthenticateResult;
 use pbkdf2::pbkdf2_hmac_array;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
 pub mod db;
-pub mod error;
 
 #[derive(Deserialize)]
 pub struct UserExistsParams {
     pub username: String,
-}
-
-#[derive(Debug, Serialize)]
-pub struct AuthenticateResult {
-    pub username: String,
-}
-
-impl From<String> for AuthenticateResult {
-    fn from(username: String) -> Self {
-        AuthenticateResult { username }
-    }
 }
 
 /// A struct that contains the username and password

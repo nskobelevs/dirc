@@ -1,0 +1,10 @@
+*
+
+!auth/
+auth/target/
+
+!users/
+users/target/
+
+!core-rs/
+core-rs/target/

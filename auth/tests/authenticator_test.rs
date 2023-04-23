@@ -1,4 +1,6 @@
-use auth::{error::AuthError, AuthenticateResult, LoginInfo, SessionToken};
+use auth::{LoginInfo, SessionToken};
+
+use core_rs::{error::ServiceError, AuthenticateResult};
 
 #[derive(Clone)]
 struct Authenticator {
@@ -20,19 +22,19 @@ impl Authenticator {
         database.drop(None).await.expect("Failed to drop database");
     }
 
-    async fn register(&self, info: LoginInfo) -> Result<SessionToken, AuthError> {
+    async fn register(&self, info: LoginInfo) -> Result<SessionToken, ServiceError> {
         self.inner.register(info).await
     }
 
-    async fn login(&self, info: LoginInfo) -> Result<SessionToken, AuthError> {
+    async fn login(&self, info: LoginInfo) -> Result<SessionToken, ServiceError> {
         self.inner.login(info).await
     }
 
-    async fn logout(&self, token: SessionToken) -> Result<(), AuthError> {
+    async fn logout(&self, token: SessionToken) -> Result<(), ServiceError> {
         self.inner.logout(token).await
     }
 
-    async fn authenticate(&self, token: &str) -> Result<AuthenticateResult, AuthError> {
+    async fn authenticate(&self, token: &str) -> Result<AuthenticateResult, ServiceError> {
         self.inner.authenticate(token).await
     }
 }
@@ -55,7 +57,6 @@ async fn get_authenticator() -> Authenticator {
             .expect("Failed to connect to MongoDB"),
     );
 
-    println!("Created authenticator");
     authenticator.drop_database().await;
 
     authenticator
@@ -93,7 +94,7 @@ async fn test_register_fails_if_username_is_taken() {
 
     assert_eq!(
         result.unwrap_err(),
-        AuthError::UsernameTaken("username".to_string())
+        ServiceError::UsernameTaken("username".to_string())
     );
 }
 
@@ -134,7 +135,7 @@ async fn test_invalid_session_token_fails_auth() {
         panic!("Expected to fail authenticating with an invalid token");
     }
 
-    assert_eq!(result.unwrap_err(), AuthError::AuthenticationError);
+    assert_eq!(result.unwrap_err(), ServiceError::AuthenticationError);
 }
 
 #[tokio::test]

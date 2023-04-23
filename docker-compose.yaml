@@ -6,13 +6,30 @@ services:
     ports:
       - "8080:8080"
   auth:
-    build: auth
+    build:
+      context: ./
+      dockerfile: auth/Dockerfile
     container_name: auth
     depends_on:
-      - mongodb
+      - mongodb-auth
       - api
     environment:
-      - MONGODB_HOSTNAME=mongodb
+      - MONGODB_HOSTNAME=mongodb-auth
+    ports:
+      - "8082:8080"
+  users:
+    build:
+      context: ./
+      dockerfile: users/Dockerfile
+    container_name: users
+    depends_on:
+      - mongodb-users
+      - api
+      - auth
+    environment:
+      - MONGODB_HOSTNAME=mongodb-auth
+    ports:
+      - "8081:8080"
   client:
     build: client
     container_name: client
@@ -21,8 +38,9 @@ services:
     depends_on:
       - api
       - auth
-  mongodb:
+  mongodb-auth:
     image: mongo:latest
-    container_name: mongodb
-    ports:
-      - "27017:27017"
+    container_name: mongodb-auth
+  mongodb-users:
+    image: mongo:latest
+    container_name: mongodb-users
