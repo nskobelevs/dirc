@@ -27,7 +27,7 @@ async fn register(
     authenticator: web::Data<Authenticator>,
     info: web::Json<LoginInfo>,
 ) -> Response<SessionToken> {
-    return authenticator.register(info.into_inner()).await.into();
+    authenticator.register(info.into_inner()).await.into()
 }
 
 #[get("/authenticate")]

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use mongodb::{
-    bson::doc,
+    bson::{doc, DateTime},
     options::{ClientOptions, IndexOptions},
     Client, ClientSession, Database, IndexModel,
 };
@@ -195,7 +195,18 @@ impl Authenticator {
             .await?;
 
         match session_token_option {
-            Some(session_token_object) => Ok(session_token_object.username().clone().into()),
+            Some(session_token_object) => {
+                session_token_collection
+                    .update_one_with_session(
+                        doc! { "token": session_token },
+                        doc! { "$set": { "createdAt": DateTime::now() } },
+                        None,
+                        &mut session,
+                    )
+                    .await?;
+
+                Ok(session_token_object.username().clone().into())
+            }
             None => Err(ServiceError::AuthenticationError),
         }
     }
