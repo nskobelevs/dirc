@@ -2,12 +2,10 @@ use std::env;
 
 use actix_cors::Cors;
 use actix_web::{
-    error::ParseError,
     get,
-    http::{self, header::Header},
+    http::{self},
     post, put, web, App, HttpRequest, HttpResponse, HttpServer,
 };
-use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use auth::{db::Authenticator, extract_bearer_token, LoginInfo, SessionToken, UserExistsParams};
 
 use core_rs::{
@@ -29,7 +27,7 @@ async fn register(
     authenticator: web::Data<Authenticator>,
     info: web::Json<LoginInfo>,
 ) -> Response<SessionToken> {
-    authenticator.register(info.into_inner()).await.into()
+    return authenticator.register(info.into_inner()).await.into();
 }
 
 #[get("/authenticate")]

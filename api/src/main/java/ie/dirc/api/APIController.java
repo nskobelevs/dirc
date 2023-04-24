@@ -25,11 +25,12 @@ public class APIController {
     private final int port = 8080;
 
     @RequestMapping(value = "{service}/**", produces = "application/json")
-    public ResponseEntity<String> mirrorRest(@RequestBody(required = false) String body, @PathVariable String service, HttpMethod method, HttpServletRequest request, HttpServletResponse response)
+    public ResponseEntity<String> mirrorRest(@RequestBody(required = false) String body, @PathVariable String service,
+            HttpMethod method, HttpServletRequest request, HttpServletResponse response)
             throws URISyntaxException {
 
         String requestURL = request.getRequestURL().toString();
-        String servicePath = requestURL.split("/" + service)[1];
+        String servicePath = requestURL.split("/" + service, 2)[1];
 
         URI uri = new URI("http", null, service, port, null, null, null);
         uri = UriComponentsBuilder.fromUri(uri)

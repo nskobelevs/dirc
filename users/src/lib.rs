@@ -25,12 +25,6 @@ impl User {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ProfilePicture {
-    profile_picture: String,
-}
-
 pub async fn get_bearer_token(req: &HttpRequest) -> Result<String, ServiceError> {
     let parsed_auth = Authorization::<Bearer>::parse(req);
 

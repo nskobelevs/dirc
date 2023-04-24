@@ -1,9 +1,6 @@
 use actix_web::{error::ParseError, http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use core_rs::{
-    error::{Response, ServiceError},
-    AuthenticateResult,
-};
+use core_rs::{error::ServiceError, AuthenticateResult};
 use pbkdf2::pbkdf2_hmac_array;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
