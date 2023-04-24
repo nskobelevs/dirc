@@ -1,13 +1,13 @@
 use std::time::Duration;
 
-use core_rs::error::ServiceError;
+use core_rs::{error::ServiceError, ProfilePicture};
 use mongodb::{
     bson::doc,
     options::{ClientOptions, IndexOptions},
     Client, Database, IndexModel,
 };
 
-use crate::{ProfilePicture, User};
+use crate::User;
 
 #[derive(Clone, Debug)]
 pub struct Users {
@@ -125,6 +125,29 @@ impl Users {
                     .await?;
             }
         };
+
+        Ok(())
+    }
+
+    pub async fn create_info(
+        &self,
+        username: String,
+        profile_picture: ProfilePicture,
+    ) -> Result<(), ServiceError> {
+        let mut session = self.client.start_session(None).await?;
+
+        let user_collection = self.database.collection::<User>("users");
+
+        user_collection
+            .insert_one_with_session(
+                User {
+                    username: username.clone(),
+                    profile_picture: profile_picture.profile_picture.clone(),
+                },
+                None,
+                &mut session,
+            )
+            .await?;
 
         Ok(())
     }

@@ -29,3 +29,15 @@ pub fn create_json_cfg() -> web::JsonConfig {
             .into()
         })
 }
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfilePicture {
+    pub profile_picture: String,
+}
+
+impl From<String> for ProfilePicture {
+    fn from(profile_picture: String) -> Self {
+        ProfilePicture { profile_picture }
+    }
+}

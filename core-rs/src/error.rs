@@ -140,6 +140,7 @@ impl Serialize for ServiceError {
 
 /// A Result type that's limited to AuthError only
 /// Implements REsponder so that it can be returned from a handler
+#[derive(Debug)]
 pub enum Response<T> {
     Ok(T),
     Err(ServiceError),

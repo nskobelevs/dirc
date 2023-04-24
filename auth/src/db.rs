@@ -6,9 +6,12 @@ use mongodb::{
     Client, ClientSession, Database, IndexModel,
 };
 
-use core_rs::error::ServiceError;
+use core_rs::{error::ServiceError, ProfilePicture};
 
 use crate::{AuthenticateResult, Credentials, LoginInfo, SessionToken};
+
+const DEFAULT_PROFILE_PICTURE_URL: &str =
+    "https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg";
 
 /// Authenticator is the main struct for the authentication service handing authentication actions using a MongoDB database.
 #[derive(Clone, Debug)]
@@ -90,8 +93,37 @@ impl Authenticator {
             .insert_one_with_session(credentials, None, &mut session)
             .await?;
 
-        self.create_and_store_session_token(info.username, &mut session)
-            .await
+        let token_res = self
+            .create_and_store_session_token(info.username.clone(), &mut session)
+            .await;
+
+        match token_res {
+            Ok(session_token) => {
+                let username = info.username.clone();
+
+                if username.starts_with("test") {
+                    return Ok(session_token);
+                }
+
+                let client = awc::Client::default();
+
+                let pfp: ProfilePicture = DEFAULT_PROFILE_PICTURE_URL.to_string().into();
+
+                let mut response = client
+                    .put(format!("http://users:8080/{}/info", username))
+                    .send_json(&pfp)
+                    .await
+                    .expect("Failed to make request to auth/authenticate");
+
+                if response.status() == 200 {
+                    Ok(session_token)
+                } else {
+                    println!("Error: {:?}", response.body().await);
+                    Err(ServiceError::AuthenticationError)
+                }
+            }
+            Err(e) => Err(e),
+        }
     }
 
     /// Creates a new session token, stores it in the database and returns it

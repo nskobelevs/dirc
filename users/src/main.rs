@@ -4,14 +4,15 @@ use actix_cors::Cors;
 use actix_web::{
     get,
     http::{self},
-    post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
+    post, put, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
 };
 
 use core_rs::{
     create_json_cfg,
     error::{Response, ServiceError},
+    ProfilePicture,
 };
-use users::{authenticate, db::Users, ProfilePicture, User};
+use users::{authenticate, db::Users, User};
 
 #[get("/{username}/exists")]
 async fn exists(users: web::Data<Users>, path: web::Path<String>) -> Response<bool> {
@@ -42,6 +43,20 @@ async fn put_info(
         .into()
 }
 
+// TODO: This would only be allowed by the auth service and not externally...
+#[put("/{username}/info")]
+async fn create_info(
+    users: web::Data<Users>,
+    path: web::Path<String>,
+    profile_picture: web::Json<ProfilePicture>,
+) -> Response<()> {
+    let username = path.into_inner();
+
+    users
+        .create_info(username, profile_picture.into_inner())
+        .await
+        .into()
+}
 /// Custom 404 handler to return JSON
 async fn not_found() -> impl Responder {
     HttpResponse::NotFound().json(ServiceError::NotFound)
@@ -49,7 +64,7 @@ async fn not_found() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Starting auth server...");
+    println!("Starting users server...");
 
     let mongodb_hostname = env::var("MONGODB_HOSTNAME").unwrap_or_else(|_| "localhost".to_string());
 
@@ -77,6 +92,7 @@ async fn main() -> std::io::Result<()> {
             .service(exists)
             .service(info)
             .service(put_info)
+            .service(create_info)
             .default_service(web::route().to(not_found))
     })
     .bind(("0.0.0.0", 8080))?
