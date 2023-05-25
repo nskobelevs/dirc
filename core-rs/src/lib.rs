@@ -5,13 +5,13 @@ use serde::{Deserialize, Serialize};
 pub mod error;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AuthenticateResult {
+pub struct Username {
     pub username: String,
 }
 
-impl From<String> for AuthenticateResult {
+impl From<String> for Username {
     fn from(username: String) -> Self {
-        AuthenticateResult { username }
+        Username { username }
     }
 }
 

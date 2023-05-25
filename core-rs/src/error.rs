@@ -20,6 +20,8 @@ pub enum ServiceError {
     InvalidPassword,
     /// Failed to verify the user's session token.
     AuthenticationError,
+    /// Failed to authorize the user's request.
+    AuthorizationError,
     /// Authorization header is missing
     AuthorizationHeaderError,
 }
@@ -36,6 +38,7 @@ impl ServiceError {
             ServiceError::InvalidPassword => StatusCode::UNAUTHORIZED,
             ServiceError::AuthenticationError => StatusCode::UNAUTHORIZED,
             ServiceError::AuthorizationHeaderError => StatusCode::BAD_REQUEST,
+            ServiceError::AuthorizationError => StatusCode::FORBIDDEN,
         }
     }
 
@@ -52,6 +55,7 @@ impl ServiceError {
             ServiceError::AuthorizationHeaderError => {
                 "Authorization `Breaker` header is missing".to_string()
             }
+            ServiceError::AuthorizationError => "Failed to authorize user".to_string(),
         }
     }
 
@@ -66,6 +70,7 @@ impl ServiceError {
             ServiceError::InvalidPassword => "InvalidPassword".to_string(),
             ServiceError::AuthenticationError => "AuthenticationError".to_string(),
             ServiceError::AuthorizationHeaderError => "AuthorizationHeaderError".to_string(),
+            ServiceError::AuthorizationError => "AuthorizationError".to_string(),
         }
     }
 }

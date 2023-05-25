@@ -11,7 +11,7 @@ use auth::{db::Authenticator, extract_bearer_token, LoginInfo, SessionToken, Use
 use core_rs::{
     create_json_cfg,
     error::{Response, ServiceError},
-    AuthenticateResult,
+    Username,
 };
 
 #[post("/login")]
@@ -34,13 +34,36 @@ async fn register(
 async fn authenticate(
     authenticator: web::Data<Authenticator>,
     req: HttpRequest,
-) -> Response<AuthenticateResult> {
+) -> Response<Username> {
     let bearer_auth = match extract_bearer_token(&req) {
         Ok(bearer_auth) => bearer_auth,
         Err(err) => return Response::Err(err),
     };
 
     authenticator.authenticate(&bearer_auth).await.into()
+}
+
+#[get("/authorize")]
+async fn authorize(
+    authenticator: web::Data<Authenticator>,
+    username: web::Json<Username>,
+    req: HttpRequest,
+) -> Response<Username> {
+    let bearer_auth = match extract_bearer_token(&req) {
+        Ok(bearer_auth) => bearer_auth,
+        Err(err) => return Response::Err(err),
+    };
+
+    let token_username = match authenticator.authenticate(&bearer_auth).await {
+        Ok(token_username) => token_username,
+        Err(err) => return Response::Err(err),
+    };
+
+    if token_username.username == username.into_inner().username {
+        Ok(token_username).into()
+    } else {
+        Err(ServiceError::AuthorizationError).into()
+    }
 }
 
 #[get("/logout")]
