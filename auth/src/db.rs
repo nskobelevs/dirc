@@ -8,7 +8,7 @@ use mongodb::{
 
 use core_rs::{error::ServiceError, ProfilePicture};
 
-use crate::{AuthenticateResult, Credentials, LoginInfo, SessionToken};
+use crate::{Credentials, LoginInfo, SessionToken, Username};
 
 const DEFAULT_PROFILE_PICTURE_URL: &str =
     "https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg";
@@ -183,10 +183,7 @@ impl Authenticator {
     /// # Errors
     /// `ServiceError::DatabaseError` if a database error occurs
     /// `ServiceError::AuthenticationError` if the session token is invalid
-    pub async fn authenticate(
-        &self,
-        session_token: &str,
-    ) -> Result<AuthenticateResult, ServiceError> {
+    pub async fn authenticate(&self, session_token: &str) -> Result<Username, ServiceError> {
         let mut session = self.client.start_session(None).await?;
         let session_token_collection = self.database.collection::<SessionToken>("sessions");
 

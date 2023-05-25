@@ -2,7 +2,7 @@ use actix_web::{error::ParseError, http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use core_rs::{
     error::{ServiceError, ServiceErrorJSON},
-    AuthenticateResult,
+    Username,
 };
 use reqwest::header::AUTHORIZATION;
 use serde::{Deserialize, Serialize};
@@ -56,7 +56,7 @@ pub async fn authenticate(req: &HttpRequest, expected_username: &str) -> Result<
         return Err(service_error);
     }
 
-    let auth_result: AuthenticateResult = serde_json::from_str(&body).unwrap();
+    let auth_result: Username = serde_json::from_str(&body).unwrap();
 
     if auth_result.username != expected_username {
         return Err(ServiceError::AuthenticationError);
