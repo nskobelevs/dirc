@@ -2,6 +2,7 @@ package ie.dirc.api;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 import org.springframework.http.HttpEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -53,7 +55,38 @@ public class APIController {
             return ResponseEntity.status(e.getStatusCode())
                     .headers(e.getResponseHeaders())
                     .body(e.getResponseBodyAsString());
+        } catch (RestClientException e) {
+            Throwable rootCause = e.getRootCause();
+
+            if (rootCause instanceof UnknownHostException) {
+                return generate404();
+            }
+
+            return generateJSONErrorFromThrowable(rootCause);
         }
 
+    }
+
+    private ResponseEntity<String> generate404() {
+        return ResponseEntity.status(404)
+                .headers(new HttpHeaders() {
+                    {
+                        add("Content-Type", "application/json");
+                    }
+                })
+                .body("{\"error\":{\"type\":\"PageNotFound\",\"message\":\"Page not found\"}}");
+    }
+
+    private ResponseEntity<String> generateJSONErrorFromThrowable(Throwable e) {
+        String errorType = e.getClass().getSimpleName();
+        String message = e.getMessage();
+
+        return ResponseEntity.status(500)
+                .headers(new HttpHeaders() {
+                    {
+                        add("Content-Type", "application/json");
+                    }
+                })
+                .body(String.format("{\"error\":{\"type\":\"%s\",\"message\":\"%s\"}}", errorType, message));
     }
 }
