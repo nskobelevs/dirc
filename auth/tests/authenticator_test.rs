@@ -1,6 +1,6 @@
 use auth::{LoginInfo, SessionToken};
 
-use core_rs::{error::ServiceError, AuthenticateResult};
+use core_rs::{error::ServiceError, Username};
 
 #[derive(Clone)]
 struct Authenticator {
@@ -34,7 +34,7 @@ impl Authenticator {
         self.inner.logout(token).await
     }
 
-    async fn authenticate(&self, token: &str) -> Result<AuthenticateResult, ServiceError> {
+    async fn authenticate(&self, token: &str) -> Result<Username, ServiceError> {
         self.inner.authenticate(token).await
     }
 }
