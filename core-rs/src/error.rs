@@ -53,7 +53,7 @@ impl ServiceError {
             ServiceError::InvalidPassword => "Invalid password".to_string(),
             ServiceError::AuthenticationError => "Failed to authenticate user".to_string(),
             ServiceError::AuthorizationHeaderError => {
-                "Authorization `Breaker` header is missing".to_string()
+                "Authorization `Bearer` header is missing or malformed".to_string()
             }
             ServiceError::AuthorizationError => "Failed to authorize user".to_string(),
         }
