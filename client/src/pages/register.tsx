@@ -1,9 +1,9 @@
+import { useForm } from 'react-hook-form';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { ErrorMessage } from '@hookform/error-message';
 import cn from 'classnames';
 import ErrorSpan from '@/components/ErrorSpan';
-import { useForm } from 'react-hook-form';
 
 type FormData = {
   username: string;
@@ -11,10 +11,11 @@ type FormData = {
   confirm: string;
 };
 
-const Login = () => {
+const Register = () => {
   const { register: signUp } = useAuth();
   const {
     register,
+    watch,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
@@ -34,7 +35,7 @@ const Login = () => {
           className="container mx-auto py-12 px-24 w-[32rem] h-[36rem] bg-gray-50 flex flex-col items-center justify-center gap-y-3 border border-gray-300 rounded-xl"
           onSubmit={handleSubmit(signUp)}
         >
-          <h1 className="text-4xl font-extrabold relative bottom-4">
+          <h1 className="text-4xl justify-self-start font-extrabold mb-10">
             Welcome to dIRC
           </h1>
 
@@ -73,6 +74,27 @@ const Login = () => {
                 render={ErrorSpan}
               />
             </div>
+
+            <div className="w-full min-h-[70px]">
+              <input
+                type="password"
+                className={cn(
+                  'input input-bordered w-full',
+                  errors.confirm && 'input-error',
+                )}
+                placeholder="Confirm password"
+                {...register('confirm', {
+                  validate: (value) => {
+                    if (watch('password') !== value) {
+                      return 'Passwords do not match';
+                    }
+                    return true;
+                  },
+                })}
+              />
+
+              <ErrorMessage errors={errors} name="confirm" render={ErrorSpan} />
+            </div>
           </div>
 
           <hr className="h-0.5 my-4 bg-gray-300 w-96 rounded border-0" />
@@ -81,12 +103,12 @@ const Login = () => {
             <button className="btn btn-primary btn-wide" type="submit">
               Sign up
             </button>
-            <p className="text-gray-500 mt-3">
-              No account?{' '}
+            <span className="text-gray-500 mt-3">
+              Already have an account?{' '}
               <Link href="/login" className="link link-accent">
                 Log in
               </Link>
-            </p>
+            </span>
           </div>
         </form>
       </div>
@@ -94,4 +116,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
