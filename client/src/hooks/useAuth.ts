@@ -52,7 +52,8 @@ export const useAuth = () => {
       return;
     }
 
-    if (router.pathname !== '/login') router.push('/login');
+    const { pathname } = router;
+    if (!['/login', '/register'].includes(pathname)) router.push('/login');
   }, [cookies, router, setUser]);
 
   const register = async ({ username, password }: AuthForm) => {
