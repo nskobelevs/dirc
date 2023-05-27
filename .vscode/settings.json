@@ -1,0 +1,7 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.project.sourcePaths": [
+        "chats"
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
+}
