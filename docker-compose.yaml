@@ -32,7 +32,7 @@ services:
       - api
       - auth
     environment:
-      - MONGODB_HOSTNAME=mongodb-auth
+      - MONGODB_HOSTNAME=mongodb-users
     ports:
       - "8081:8080"
   client:
@@ -62,5 +62,3 @@ services:
       - MYSQL_PASSWORD=mudsigmoids
       - MYSQL_DATABASE=dIRC
       - MYSQL_ROOT_PASSWORD=root
-    volumes:
-      - "./conf.d:/etc/mysql/conf.d:ro"
