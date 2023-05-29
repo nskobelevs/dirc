@@ -25,7 +25,7 @@ export const useAuth = () => {
 
   const authenticate = async (token: string) => {
     const { username } = await get<AuthenticateResponse>(
-      'authenticate',
+      'auth/authenticate',
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -41,7 +41,7 @@ export const useAuth = () => {
 
     const handleAuthenticate = async () => {
       const username = await authenticate(token);
-      setUser({ username });
+      setUser({ username, token });
     };
 
     if (token) {
@@ -58,7 +58,7 @@ export const useAuth = () => {
 
   const register = async ({ username, password }: AuthForm) => {
     const { token } = await put<RegisterResponse, RegisterBody>(
-      'register',
+      'auth/register',
       {
         username,
         password,
@@ -69,7 +69,7 @@ export const useAuth = () => {
   };
 
   const login = async ({ username, password }: AuthForm) => {
-    const { token } = await post<LoginResponse, LoginBody>('login', {
+    const { token } = await post<LoginResponse, LoginBody>('auth/login', {
       username,
       password,
     });

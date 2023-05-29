@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { ErrorMessage } from '@hookform/error-message';
 import cn from 'classnames';
 import ErrorSpan from '@/components/ErrorSpan';
+import { useRouter } from 'next/router';
+import toast from 'react-hot-toast';
+import { ApiError } from 'next/dist/server/api-utils';
+import { useEffect } from 'react';
 
 type FormData = {
   username: string;
@@ -12,6 +16,8 @@ type FormData = {
 };
 
 const Register = () => {
+  const router = useRouter();
+
   const { register: signUp } = useAuth();
   const {
     register,
@@ -19,6 +25,22 @@ const Register = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
+
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) router.push('/chats');
+  }, [user, router]);
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      await signUp(data);
+      router.push('/chats');
+    } catch (error) {
+      const { message } = error as ApiError;
+      toast(message, { icon: '🚨' });
+    }
+  };
 
   return (
     <>
@@ -33,7 +55,7 @@ const Register = () => {
       >
         <form
           className="container mx-auto py-12 px-24 w-[32rem] h-[36rem] bg-gray-50 flex flex-col items-center justify-center gap-y-3 border border-gray-300 rounded-xl"
-          onSubmit={handleSubmit(signUp)}
+          onSubmit={handleSubmit(onSubmit)}
         >
           <h1 className="text-4xl justify-self-start font-extrabold mb-10">
             Welcome to dIRC

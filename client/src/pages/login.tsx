@@ -4,6 +4,9 @@ import { ErrorMessage } from '@hookform/error-message';
 import cn from 'classnames';
 import ErrorSpan from '@/components/ErrorSpan';
 import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/router';
+import { toast } from 'react-hot-toast';
+import { ApiError } from 'next/dist/server/api-utils';
 
 type FormData = {
   username: string;
@@ -12,12 +15,24 @@ type FormData = {
 };
 
 const Login = () => {
-  const { register: signUp } = useAuth();
+  const router = useRouter();
+
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      await login(data);
+      router.push('/chats');
+    } catch (error) {
+      const { message } = error as ApiError;
+      toast(message, { icon: '🚨' });
+    }
+  };
 
   return (
     <>
@@ -32,7 +47,7 @@ const Login = () => {
       >
         <form
           className="container mx-auto py-12 px-24 w-[32rem] h-[36rem] bg-gray-50 flex flex-col items-center justify-center gap-y-3 border border-gray-300 rounded-xl"
-          onSubmit={handleSubmit(signUp)}
+          onSubmit={handleSubmit(onSubmit)}
         >
           <h1 className="text-4xl font-extrabold relative bottom-4">
             Welcome to dIRC
@@ -79,12 +94,12 @@ const Login = () => {
 
           <div className="w-full flex flex-col items-center">
             <button className="btn btn-primary btn-wide" type="submit">
-              Sign up
+              Log in
             </button>
             <p className="text-gray-500 mt-3">
               No account?{' '}
-              <Link href="/login" className="link link-accent">
-                Log in
+              <Link href="/register" className="link link-accent">
+                Sign up
               </Link>
             </p>
           </div>

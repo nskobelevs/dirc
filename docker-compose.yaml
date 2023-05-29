@@ -5,11 +5,6 @@ services:
     container_name: api
     ports:
       - "8080:8080"
-  chats:
-    build: chats
-    container_name: chats
-    ports:
-      - "8084:8080"
   auth:
     build:
       context: ./
@@ -17,7 +12,7 @@ services:
     container_name: auth
     depends_on:
       - mongodb-auth
-      - api
+      - users
     environment:
       - MONGODB_HOSTNAME=mongodb-auth
     ports:
@@ -29,12 +24,18 @@ services:
     container_name: users
     depends_on:
       - mongodb-users
-      - api
-      - auth
     environment:
       - MONGODB_HOSTNAME=mongodb-users
     ports:
       - "8081:8080"
+  live-chat:
+    build: live-chat
+    container_name: live-chat
+    depends_on:
+      - auth
+      - chats
+    ports:
+      - "8083:8080"
   client:
     build: client
     container_name: client
@@ -42,7 +43,14 @@ services:
       - "3000:3000"
     depends_on:
       - api
+      - live-chat
+  chats:
+    build: chats
+    container_name: chats
+    depends_on:
       - auth
+    ports:
+      - "8084:8080"
   mongodb-auth:
     image: mongo:latest
     container_name: mongodb-auth
@@ -62,3 +70,5 @@ services:
       - MYSQL_PASSWORD=mudsigmoids
       - MYSQL_DATABASE=dIRC
       - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - "./conf.d:/etc/mysql/conf.d:ro"

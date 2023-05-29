@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -119,15 +120,14 @@ public class ChatsController {
         }
 
         ChatEntity chat = new ChatEntity(chatInfo);
-
         chat.addUser(username);
-
         chatRepository.save(chat);
+
         return new ResponseEntity<>(chat.getInfo(), HttpStatus.CREATED);
     }
 
     @GetMapping("/mychats")
-    public ResponseEntity<List<ChatInfo>> getChatsByUser(@RequestHeader("Authorization") String token)
+    public ResponseEntity<List<ChatInfoWithLatestMessage>> getChatsByUser(@RequestHeader("Authorization") String token)
             throws URISyntaxException {
         String username = getUsernameFromAuthHeader(token);
         if (username == null) {
@@ -136,7 +136,7 @@ public class ChatsController {
 
         List<ChatEntity> chats = chatRepository.findContainingUser(username);
 
-        List<ChatInfo> chatInfo = chats.stream().map(chat -> chat.getInfo()).toList();
+        List<ChatInfoWithLatestMessage> chatInfo = chats.stream().map(ChatInfoWithLatestMessage::new).toList();
 
         return new ResponseEntity<>(chatInfo, HttpStatus.OK);
     }
@@ -204,13 +204,15 @@ public class ChatsController {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", token);
 
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
         HttpEntity<String> request = new HttpEntity<>(headers);
 
         try {
             return restTemplate.exchange(uri, HttpMethod.GET, request, String.class);
         } catch (HttpStatusCodeException e) {
-            return new ResponseEntity<>(e.getResponseBodyAsString(), e.getStatusCode());
+            return ResponseEntity.status(e.getStatusCode())
+                    .headers(e.getResponseHeaders())
+                    .body(e.getResponseBodyAsString());
         }
     }
 }
