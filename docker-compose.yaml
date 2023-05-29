@@ -49,6 +49,7 @@ services:
     container_name: chats
     depends_on:
       - auth
+      - mysql-chats
     ports:
       - "8084:8080"
   mongodb-auth:

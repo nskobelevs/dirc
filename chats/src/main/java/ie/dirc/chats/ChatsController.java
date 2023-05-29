@@ -145,7 +145,6 @@ public class ChatsController {
     public ResponseEntity<ChatInfo> joinChat(@PathVariable("id") UUID id,
             @RequestHeader("Authorization") String token) throws URISyntaxException {
 
-        // TODO: Change to slug and use url service
         ChatEntity chat = chatRepository.findById(id).orElse(null);
         if (chat == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
