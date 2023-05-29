@@ -9,6 +9,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,13 +24,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
+// @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class APIController {
 
     private final int port = 8080;
 
+    // @CrossOrigin(origins = "*", allowedHeaders = "*")
     @RequestMapping(value = "{service}/**", produces = "application/json")
     public ResponseEntity<String> mirrorRest(@RequestBody(required = false) String body, @PathVariable String service,
-            HttpMethod method, HttpServletRequest request, HttpServletResponse response)
+            HttpMethod method, HttpServletRequest request)
             throws URISyntaxException {
 
         String requestURL = request.getRequestURL().toString();
@@ -40,6 +44,14 @@ public class APIController {
                 .query(request.getQueryString())
                 .build(true).toUri();
 
+        System.out.print(method + " ");
+        System.out.println(uri);
+        if (body == null) {
+            System.out.println("BODY = NULL");
+        } else {
+            System.out.println("BODY = " + body.replaceAll("\n", " "));
+        }
+
         HttpHeaders headers = new HttpHeaders();
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
@@ -47,14 +59,22 @@ public class APIController {
             headers.set(headerName, request.getHeader(headerName));
         }
 
+        System.out.println(headers);
+
         HttpEntity<String> httpEntity = new HttpEntity<>(body, headers);
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
         try {
-            return restTemplate.exchange(uri, method, httpEntity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(uri, method,
+                    httpEntity, String.class);
+            System.out.println("response: " + response);
+            return response;
         } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode())
+            ResponseEntity<String> error = ResponseEntity.status(e.getStatusCode())
                     .headers(e.getResponseHeaders())
                     .body(e.getResponseBodyAsString());
+
+            System.out.println("error: " + error);
+            return error;
         } catch (RestClientException e) {
             Throwable rootCause = e.getRootCause();
 

@@ -4,6 +4,7 @@ use actix_cors::Cors;
 use actix_web::{
     get,
     http::{self},
+    middleware::Logger,
     post, put, web, App, HttpRequest, HttpResponse, HttpServer,
 };
 use auth::{db::Authenticator, extract_bearer_token, LoginInfo, SessionToken, UserExistsParams};
@@ -43,7 +44,7 @@ async fn authenticate(
     authenticator.authenticate(&bearer_auth).await.into()
 }
 
-#[get("/authorize")]
+#[post("/authorize")]
 async fn authorize(
     authenticator: web::Data<Authenticator>,
     username: web::Json<Username>,
@@ -106,22 +107,27 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("Failed to connect to MongoDB");
 
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
     HttpServer::new(move || {
-        let cors = Cors::default()
-            .allowed_origin("http://localhost:3000")
-            .allowed_origin("http://api:8080")
-            .allowed_methods(vec!["GET", "POST", "PUT"])
-            .allowed_headers(vec![http::header::AUTHORIZATION])
-            .allowed_header(http::header::CONTENT_TYPE)
-            .max_age(3600);
+        // let cors = Cors::permissive()
+        // .allowed_origin("http://localhost:3000")
+        // .allowed_origin("http://live-chat:8080")
+        // .allowed_origin("http://api:8080")
+        // .allowed_methods(vec!["GET", "POST", "PUT"])
+        // .allowed_headers(vec![http::header::AUTHORIZATION])
+        // .allowed_header(http::header::CONTENT_TYPE)
+        // .max_age(3600);
 
         App::new()
-            .wrap(cors)
+            // .wrap(cors)
+            .wrap(Logger::default())
             .app_data(create_json_cfg())
             .app_data(web::Data::new(authenticator.clone()))
             .service(login)
             .service(register)
             .service(authenticate)
+            .service(authorize)
             .service(logout)
             .service(user_exists)
             .default_service(web::route().to(not_found))

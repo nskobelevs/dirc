@@ -13,7 +13,7 @@ const Layout = ({ children }: PropsWithChildren) => (
       <link rel="icon" href="/favicon.ico" />
     </Head>
 
-    <main>{children}</main>
+    <main className='h-full'>{children}</main>
   </>
 );
 
